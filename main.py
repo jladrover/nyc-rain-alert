@@ -16,14 +16,16 @@ RECIPIENT = os.environ["RECIPIENT_EMAIL"]
 
 
 def get_forecast():
-    data = requests.get(
+    response = requests.get(
         f"https://api.open-meteo.com/v1/forecast"
         f"?latitude={LAT}&longitude={LON}"
         "&hourly=precipitation_probability,precipitation"
         "&timezone=America%2FNew_York"
         "&forecast_days=1",
         timeout=15,
-    ).json()
+    )
+    response.raise_for_status()
+    data = response.json()
 
     morning = [
         (p, a)
@@ -49,22 +51,33 @@ def send_email(subject, body):
 
 def main():
     if datetime.now(TZ).weekday() > 4:
+        print("Weekend. Skipping.")
         return
 
     prob, amount = get_forecast()
+    print(f"Forecast: {prob}% chance, {amount} mm/hr")
 
     if prob >= 60 or amount >= 2.5:
         size = "LARGE "
     elif prob >= 30:
         size = ""
     else:
+        print("No umbrella needed.")
         return
+
+    print(f"Sending {size.lower() or 'regular '}umbrella email.")
 
     send_email(
         f"☔{'☔' if size else ''} Bring a {size}umbrella today",
         f"Rain expected in NYC this morning ({prob}% chance, {amount} mm/hr).",
     )
 
+    print("Email sent successfully.")
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"Error: {e}")
+        raise
