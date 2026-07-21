@@ -2,9 +2,9 @@ name: NYC Rain Check
 
 on:
   schedule:
-    # Runs every day; the script itself skips weekends
-    - cron: "30 10 * * *"
-  workflow_dispatch: {} # lets you trigger it manually from the Actions tab to test
+    # 10:47 UTC = 6:47 AM EDT / 5:47 AM EST — odd minute, off-peak
+    - cron: "47 10 * * *"
+  workflow_dispatch: {}
 
 jobs:
   check-rain:
